@@ -9,6 +9,7 @@ struct block {
 struct player {
   int goal;
   int cash;
+  int suc;
 };
 
 using namespace std;
@@ -30,6 +31,7 @@ int main() {
     for( int i=0; i<plr; i++){
       cin >> miner[i].goal;
       miner[i].cash = 0;
+      miner[i].suc = 0;
     }
 
     // Ownership
