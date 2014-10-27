@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-//#define DEBUG
+// #define DEBUG
 using namespace std;
 
 enum Dir{isLeft, isUp, isUpisLeft, isUporLeft, twoAns, nope};
@@ -11,12 +11,6 @@ struct faaa {
   int d = 0;
   char c = '-';
   Dir r = nope;
-};
-struct memoDup {
-  memoDup(int a, int b, string c): dii(a), djj(b), ds(c){}
-  int dii = 0;
-  int djj = 0;
-  string ds;
 };
 
 int main()
@@ -29,7 +23,6 @@ int main()
     string s1n, s2n, tmp, s1, s2;
     cin >> s1n >> s2n;
 
-#ifndef DEBUG
   for( char &c: s1n )
     s1 = c + s1;
   s1 = ' ' + s1;
@@ -37,27 +30,6 @@ int main()
   for( char &c: s2n )
     s2 = c + s2;
   s2 = ' ' + s2;
-
-#else
-    if( s1n >= s2n ) {
-      for( char &c: s1n )
-        s1 = c + s1;
-      s1 = ' ' + s1;
-
-      for( char &c: s2n )
-        s2 = c + s2;
-      s2 = ' ' + s2;
-    }
-    else {
-      for( char &c: s2n )
-        s1 = c + s1;
-      s1 = ' ' + s1;
-
-      for( char &c: s1n )
-        s2 = c + s2;
-      s2 = ' ' + s2;
-    }
-#endif
 
     // Amazing memo
     vector< vector< faaa > > table;
@@ -93,7 +65,7 @@ int main()
             table[i][j].r = isUp;
             table[i][j].c = table[i-1][j].c;
           }
-          else { // There 2 possible answer
+          else { // There 2 possible answer and optimization
             table[i][j].r = twoAns;
             table[i][j].c = table[i-1][j].c;
             if( table[i][j-1].r == isUp && table[i-1][j].r == isLeft )
@@ -112,8 +84,84 @@ int main()
               table[i][j].r = isLeft;
             else if( table[i][j-1].r == isUp && table[i-1][j].r == twoAns)
               table[i][j].r = isUp;
-            else
-              ++dup;
+            else {
+                int ii, jj, dd;
+                int iiu, jju, iil, jjl;
+                dd= table[i][j].d-1;
+                // Left
+                char llf, uup;
+
+                iiu = i-1;
+                jju = j;
+                iil = i;
+                jjl = j-1;
+                FIGHTFIGHTAGAIN:
+                ii = iiu; jj = jju;
+                while( ii >= 1 && jj >= 1 && table[i][j].d > dd) {
+                      //cout << "TB(LL): " << s1[i] << endl;
+                      uup = s1[ii];
+                      switch( table[ii][jj].r ){
+                        case isUp:
+                          ii = ii - 1;
+                          break;
+                        case isLeft:
+                          jj = jj - 1;
+                          break;
+                        case isUpisLeft:
+                          ii = ii - 1;
+                          jj = jj - 1;
+                          break;
+                        case nope:
+                          ii = ii -1;
+                          jj = jj -1;
+                          break;
+                        default:
+                          cerr << "Error !" << endl;
+                          break;
+                      }
+                }
+                iiu = ii; jju = jj;
+                ii = iil; jj = jjl;
+                while( ii >= 1 && jj >= 1 && table[i][j].d > dd) {
+                      //cout << "TB(UU): " << s1[i] << endl;
+                      llf = s1[ii];
+                      switch( table[ii][jj].r ){
+                        case isUp:
+                          ii = ii - 1;
+                          break;
+                        case isLeft:
+                          jj = jj - 1;
+                          break;
+                        case isUpisLeft:
+                          ii = ii - 1;
+                          jj = jj - 1;
+                          break;
+                        case nope:
+                          ii = ii -1;
+                          jj = jj -1;
+                          break;
+                        default:
+                          cerr << "Error !" << endl;
+                          break;
+                      }
+                }
+                iil = ii; jjl = jj;
+                if ( uup < llf )
+                  table[i][j].r = isUp;
+                else if ( uup > llf)
+                  table[i][j].r = isLeft;
+                else{
+                  if( dd != 0 ){
+                    --dd;
+                    goto FIGHTFIGHTAGAIN;
+                  }
+                  else {
+                    table[i][j].r = isUp;
+                    //cout << "QQ : ";
+                  }
+                }
+                //cout << "now : " << "(" << i << "," << j << ")" << " ll: " << llf << ", uu: " << uup << endl;
+            }
           }
         }
       }
@@ -163,20 +211,8 @@ int main()
     // Print LCS
     int ii = s1.length() - 1,
         jj = s2.length() - 1;
-    string answer, final;
-    ++dup; // At least one answer
-    vector < memoDup > poss;
-
-    poss.push_back( memoDup(ii, jj,""));
-    // while( dup-- ) { // dup answer
-    while( ! poss.empty()){
-      answer = "";
-      // cout << "Size: " << poss.size() << endl;
-      ii = poss.back().dii;
-      jj = poss.back().djj;
-      answer = poss.back().ds;
-      poss.pop_back();
-        while( ii >= 1 && jj >= 1 ) {
+    string answer;
+    while( ii >= 1 && jj >= 1 ) {
           switch( table[ii][jj].r ){
             case isUp:
               ii = ii - 1;
@@ -189,11 +225,6 @@ int main()
               ii = ii - 1;
               jj = jj - 1;
               break;
-            case twoAns:
-              // First Time up // default up;
-              poss.push_back( memoDup(ii, jj-1, answer));
-              ii = ii - 1;
-              break;
             case nope:
               ii = ii -1;
               jj = jj -1;
@@ -202,13 +233,8 @@ int main()
               cerr << "Error !" << endl;
               break;
           }
-        }
-      if( final.empty() || final > answer)
-        final = answer;
-      //cout << answer << endl;
     }
-    //cout << "b: ";
-    cout << final << endl;
+    cout << answer << endl;
   }
   return 0;
 }
